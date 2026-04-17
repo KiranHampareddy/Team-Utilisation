@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Elite Command | Titan V3 Precision</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030712; --card: #0f172a; --primary: #38bdf8; --pa: #0ea5e9; --qa: #8b5cf6;
+            --success: #10b981; --danger: #ef4444; --text: #f8fafc; --text-dim: #64748b; --border: #1e293b;
+        }
+        * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .container { max-width: 1800px; margin: 0 auto; }
+        
+        .master-nav { display: flex; justify-content: space-between; align-items: center; background: var(--card); padding: 15px 30px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 20px; position: sticky; top: 10px; z-index: 1000; }
+        .search-box { background: #1e293b; border: 1px solid var(--border); padding: 10px 20px; border-radius: 12px; color: white; outline: none; width: 300px; }
+
+        .control-bar { background: var(--card); padding: 20px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 25px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 15px; }
+        .pill-group { display: flex; background: #1e293b; padding: 5px; border-radius: 12px; gap: 5px; }
+        .pill { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; color: var(--text-dim); font-weight: 800; font-size: 0.75rem; background: transparent; transition: 0.2s; }
+        .pill.active { background: var(--primary); color: #000; }
+        
+        .table-wrap { background: var(--card); border-radius: 20px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 14px 20px; background: rgba(255,255,255,0.03); color: var(--text-dim); font-size: 0.7rem; text-transform: uppercase; }
+        td { padding: 14px 20px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
+
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        .card { background: var(--card); padding: 25px; border-radius: 24px; border: 1px solid var(--border); position: relative; }
+        .uti-lg { font-size: 2.2rem; font-weight: 900; color: var(--primary); margin: 5px 0; }
+        .prog-stack { height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; margin: 15px 0; display: flex; }
+
+        .bottom-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; padding-top: 30px; border-top: 2px solid var(--border); }
+        .hall-card { background: linear-gradient(145deg, #1e293b, #0f172a); padding: 30px; border-radius: 24px; border: 1px solid var(--border); text-align: center; }
+
+        .hidden { display: none; }
+        #dropZone { border: 2px dashed var(--border); background: var(--card); padding: 100px; text-align: center; border-radius: 40px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="master-nav">
+        <div style="font-weight: 900; font-size: 1.5rem; color: var(--primary);">ELITE<span>TITAN</span></div>
+        <input type="text" id="searchInput" class="search-box" placeholder="Search team member...">
+        <div id="coverage" style="font-size: 0.7rem; color: var(--text-dim);">NO DATA</div>
+    </div>
+
+    <div id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" class="hidden" accept=".csv, .xlsx">
+        <h1 style="color:var(--primary)">INITIALIZE DATA</h1>
+        <p style="color:var(--text-dim)">Standardizing for PA/QA Utilization</p>
+    </div>
+
+    <div id="dashUI" class="hidden">
+        <div class="control-bar">
+            <div class="pill-group">
+                <button class="pill" id="p-day" onclick="setMode('day', this)">DAILY</button>
+                <button class="pill active" id="p-week" onclick="setMode('week', this)">WEEKLY</button>
+                <button class="pill" id="p-month" onclick="setMode('month', this)">MONTHLY</button>
+                <button class="pill" id="p-quarter" onclick="setMode('quarter', this)">QUARTERLY</button>
+                <button class="pill" id="p-all" onclick="setMode('all', this)">SHOW ALL</button>
+            </div>
+
+            <div style="display:flex; gap:10px; align-items:center;">
+                <input type="date" id="startIn"> <span id="toLabel">to</span> <input type="date" id="endIn">
+                <button onclick="applyCustom()" style="background:var(--primary); color:black; border:none; padding:8px 20px; border-radius:10px; font-weight:800; cursor:pointer;">APPLY</button>
+            </div>
+
+            <div id="selectionLabel" style="font-weight: 800; color: var(--success); text-align: right;">---</div>
+        </div>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>Member</th><th>Tkts</th><th>PA-1</th><th>PA-2</th><th>QA-1</th><th>QA-2</th><th>Target</th><th>Total</th><th>Util %</th><th>Gap</th></tr>
+                </thead>
+                <tbody id="teamBody"></tbody>
+            </table>
+        </div>
+
+        <div class="card-grid" id="teamCards"></div>
+
+        <div class="bottom-stats">
+            <div class="hall-card"><h3>UTILIZATION KING</h3><div id="topUti" class="uti-lg" style="justify-content:center">-</div></div>
+            <div class="hall-card"><h3>VOLUME LEADER</h3><div id="topTkts" class="uti-lg" style="justify-content:center">-</div></div>
+            <div class="hall-card"><h3>TEAM PULSE</h3><div id="teamPulse" class="uti-lg" style="justify-content:center">0%</div></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let rawData = [];
+    let masterTeamList = new Set();
+    let curMode = 'week';
+    const DAY_MINS = 420;
+
+    function setMode(mode, btn) {
+        document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        curMode = mode;
+        document.getElementById('toLabel').style.display = mode === 'day' ? 'none' : 'inline';
+        document.getElementById('endIn').style.display = mode === 'day' ? 'none' : 'inline';
+        process();
+    }
+
+    function applyCustom() {
+        curMode = (curMode === 'day') ? 'day' : 'custom';
+        process();
+    }
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        document.querySelectorAll('#teamBody tr, #teamCards .card').forEach(el => {
+            const name = el.getAttribute('data-name').toLowerCase();
+            el.style.display = name.includes(val) ? '' : 'none';
+        });
+    });
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const workbook = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
+            rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+            
+            masterTeamList.clear();
+            rawData.forEach(row => {
+                ['PA-1', 'PA-2', 'QA-1', 'QA-2'].forEach(role => {
+                    const name = row[role];
+                    if (name && isNaN(name) && name !== 'undefined') masterTeamList.add(name);
+                });
+            });
+
+            const dates = rawData.map(r => new Date(r['PIO (Completed)'])).filter(d => !isNaN(d));
+            document.getElementById('coverage').innerText = `DATA: ${new Date(Math.min(...dates)).toLocaleDateString()} - ${new Date(Math.max(...dates)).toLocaleDateString()}`;
+            
+            document.getElementById('dashUI').classList.remove('hidden');
+            document.getElementById('dropZone').classList.add('hidden');
+            process();
+        };
+        reader.readAsArrayBuffer(e.target.files[0]);
+    });
+
+    function getWorkDays(s, e) {
+        let count = 0; let cur = new Date(s);
+        cur.setHours(0,0,0,0); e.setHours(23,59,59,999);
+        while(cur <= e) { 
+            const day = cur.getDay();
+            if(day !== 0 && day !== 6) count++; 
+            cur.setDate(cur.getDate()+1); 
+        }
+        return count || 1;
+    }
+
+    function process() {
+        if (!rawData.length) return;
+        const now = new Date();
+        let start, end;
+
+        // Logic for setting start/end based on UI
+        if (curMode === 'day') {
+            start = new Date(document.getElementById('startIn').value || now);
+            end = new Date(start);
+        } else if (curMode === 'week') {
+            start = new Date(now); start.setDate(now.getDate() - (now.getDay() - 1));
+            end = new Date(start); end.setDate(start.getDate() + 4);
+        } else if (curMode === 'month') {
+            start = new Date(now.getFullYear(), now.getMonth(), 1);
+            end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        } else if (curMode === 'quarter') {
+            const q = Math.floor(now.getMonth() / 3);
+            start = new Date(now.getFullYear(), q * 3, 1);
+            end = new Date(now.getFullYear(), (q + 1) * 3, 0);
+        } else if (curMode === 'custom') {
+            start = new Date(document.getElementById('startIn').value);
+            end = new Date(document.getElementById('endIn').value);
+        } else { // SHOW ALL
+            const dates = rawData.map(r => new Date(r['PIO (Completed)'])).filter(d => !isNaN(d));
+            start = new Date(Math.min(...dates));
+            end = new Date(Math.max(...dates));
+        }
+
+        start.setHours(0,0,0,0);
+        end.setHours(23,59,59,999);
+
+        const workDays = getWorkDays(new Date(start), new Date(end));
+        const target = workDays * DAY_MINS;
+        document.getElementById('selectionLabel').innerText = `${start.toLocaleDateString()} - ${end.toLocaleDateString()} (${workDays} Work Days)`;
+
+        const members = {};
+        masterTeamList.forEach(name => {
+            members[name] = { pa:0, qa:0, tot:0, tkts:0, pa1:0, pa2:0, qa1:0, qa2:0, rets: new Set() };
+        });
+
+        rawData.forEach(row => {
+            const clean = {}; Object.keys(row).forEach(k => clean[k.trim().toLowerCase().replace(/[^a-z0-9]/g,'')] = row[k]);
+            if (String(clean.piostatus).toLowerCase() !== 'completed') return;
+            const d = new Date(clean.piocompleted);
+
+            if (d >= start && d <= end) {
+                [['pa1','pa1min'],['pa2','pa2min'],['qa1','qa1min'],['qa2','qa2min']].forEach(([nk, mk]) => {
+                    const name = row[Object.keys(row).find(k => k.toLowerCase().replace(/[^a-z0-9]/g,'') === nk)];
+                    const m = parseFloat(row[Object.keys(row).find(k => k.toLowerCase().replace(/[^a-z0-9]/g,'') === mk)]) || 0;
+                    if (name && members[name]) {
+                        if (nk.startsWith('pa')) members[name].pa += m; else members[name].qa += m;
+                        members[name][nk] += m; members[name].tot += m;
+                        if(m > 0) { members[name].tkts++; members[name].rets.add(clean.retailer || "Other"); }
+                    }
+                });
+            }
+        });
+
+        render(members, target);
+    }
+
+    function render(members, target) {
+        const tBody = document.getElementById('teamBody'); tBody.innerHTML = '';
+        const tGrid = document.getElementById('teamCards'); tGrid.innerHTML = '';
+        const sorted = Object.keys(members).sort((a,b) => members[b].tot - members[a].tot);
+        let globalMins = 0;
+
+        sorted.forEach(m => {
+            const u = members[m]; const p = Math.round((u.tot / target) * 100);
+            globalMins += u.tot;
+            const isBurnout = p > 105;
+            
+            tBody.innerHTML += `<tr data-name="${m}"><td><strong>${m}</strong></td><td>${u.tkts}</td><td>${u.pa1}m</td><td>${u.pa2}m</td><td>${u.qa1}m</td><td>${u.qa2}m</td><td>${target}m</td><td>${u.tot}m</td><td style="color:${isBurnout?'var(--danger)':'var(--primary)'}; font-weight:800">${p}%</td><td>${target-u.tot<=0?0:target-u.tot}m</td></tr>`;
+            
+            tGrid.innerHTML += `
+                <div class="card ${isBurnout?'burnout':''}" data-name="${m}">
+                    <div style="font-weight:700">${m}</div>
+                    <div class="uti-lg">${p}%</div>
+                    <div class="prog-stack">
+                        <div style="width:${u.tot > 0 ? (u.pa/u.tot)*100 : 0}%; background:var(--pa)"></div>
+                        <div style="width:${u.tot > 0 ? (u.qa/u.tot)*100 : 0}%; background:var(--qa)"></div>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; font-size:0.6rem; font-weight:700">
+                        <span>PA: ${u.pa}m</span><span>QA: ${u.qa}m</span>
+                    </div>
+                </div>`;
+        });
+
+        if (sorted.length) {
+            document.getElementById('topUti').innerText = sorted[0] + " (" + Math.round((members[sorted[0]].tot/target)*100) + "%)";
+            const bestV = Object.keys(members).sort((a,b) => members[b].tkts - members[a].tkts)[0];
+            document.getElementById('topTkts').innerText = bestV + " (" + members[bestV].tkts + " TKTS)";
+            document.getElementById('teamPulse').innerText = Math.round((globalMins / (sorted.length * target)) * 100) + "% TOTAL";
+        }
+    }
+</script>
+</body>
+</html>
