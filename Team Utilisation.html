@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>TEAM UTILIZATION MESSIAH</title>
+    <!-- Dependencies -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Flatpickr for Seamless Date Range selection -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -13,7 +16,9 @@
         :root {
             --bg: #030712; --card: #0f172a; --primary: #38bdf8; --pa: #0ea5e9; --qa: #8b5cf6;
             --success: #10b981; --danger: #ef4444; --text: #f8fafc; --text-dim: #64748b; --border: #1e293b;
-            --highlight: #fbbf24; --clusterA: #38bdf8; --clusterB: #a855f7; --leave: #f97316;
+            --highlight: #fbbf24; 
+            --clusterA: #38bdf8;
+            --clusterB: #a855f7;
         }
         * { box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
@@ -36,21 +41,20 @@
         
         .cluster-group { display: flex; gap: 10px; border-left: 1px solid var(--border); padding-left: 15px; }
         .c-pill { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 0.7rem; font-weight: 900; color: var(--text-dim); transition: 0.2s; }
-        .c-pill.active.ca { background: var(--clusterA); color: #000; }
-        .c-pill.active.cb { background: var(--clusterB); color: #fff; }
-        .c-pill.active.call { background: #fff; color: #000; }
+        .c-pill.active.ca { background: var(--clusterA); color: black; border-color: var(--clusterA); }
+        .c-pill.active.cb { background: var(--clusterB); color: white; border-color: var(--clusterB); }
+        .c-pill.active.call { background: white; color: black; }
 
         .range-container { display: flex; align-items: center; background: #1e293b; border: 1px solid var(--border); padding: 8px 15px; border-radius: 12px; gap: 10px; cursor: pointer; }
         #rangeInput { background: transparent; border: none; color: white; outline: none; font-weight: 700; width: 200px; cursor: pointer; font-size: 0.85rem; }
+        
+        .viewing-label { font-weight: 700; color: var(--success); font-size: 0.9rem; }
 
-        /* STICKY TABLE HEADER */
         .table-wrap { background: var(--card); border-radius: 20px; border: 1px solid var(--border); margin-bottom: 30px; position: relative; max-height: 700px; overflow-y: auto; }
         table { width: 100%; border-collapse: collapse; }
         thead th { position: sticky; top: 0; z-index: 100; background: #0f172a; text-align: left; padding: 14px 20px; color: var(--text-dim); font-size: 0.7rem; text-transform: uppercase; border-bottom: 2px solid var(--border); }
         td { padding: 14px 20px; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
 
-        .target-cell { cursor: pointer; font-weight: 800; text-decoration: underline dotted; }
-        .on-leave { color: var(--leave) !important; }
         .c-tag { font-size: 0.55rem; padding: 2px 6px; border-radius: 4px; font-weight: 900; margin-left: 8px; vertical-align: middle; }
         .c-tag.a { background: rgba(56, 189, 248, 0.2); color: var(--clusterA); border: 1px solid var(--clusterA); }
         .c-tag.b { background: rgba(168, 85, 247, 0.2); color: var(--clusterB); border: 1px solid var(--clusterB); }
@@ -68,11 +72,14 @@
         .card { background: var(--card); padding: 25px; border-radius: 24px; border: 1px solid var(--border); position: relative; transition: 0.3s; }
         .uti-lg { font-size: 2.2rem; font-weight: 900; color: var(--primary); margin: 5px 0; }
         .prog-stack { height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; margin: 12px 0; display: flex; }
+
         .ticket-link { color: var(--primary); text-decoration: none; font-weight: 800; cursor: pointer; border-bottom: 1px dashed var(--primary); }
         .ghost-badge { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); padding: 4px 10px; border-radius: 8px; font-size: 0.65rem; font-weight: 800; margin-bottom: 10px; display: inline-block; cursor: pointer; }
         
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; backdrop-filter: blur(5px); justify-content: center; align-items: center; }
         .modal { background: var(--card); width: 850px; max-height: 80vh; border-radius: 30px; border: 1px solid var(--border); padding: 30px; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+
         .hall-card { background: linear-gradient(145deg, #1e293b, #0f172a); padding: 25px; border-radius: 20px; border: 1px solid var(--border); text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 150px; }
         .hidden { display: none; }
         #dropZone { border: 2px dashed var(--border); background: var(--card); padding: 100px; text-align: center; border-radius: 30px; cursor: pointer; }
@@ -83,14 +90,17 @@
 <div class="container">
     <div class="master-nav">
         <div class="logo"><span>TEAM UTILIZATION</span></div>
-        <div class="highlight-wrap"><span>Highlight Me:</span><select id="meSelect" onchange="saveMe(this.value)"><option value="">-- Choose Name --</option></select></div>
-        <div class="coverage-badge" id="coverageInfo">Waiting for Data...</div>
+        <div class="highlight-wrap">
+            <span>Highlight Me:</span>
+            <select id="meSelect" onchange="saveMe(this.value)"><option value="">-- Choose Name --</option></select>
+        </div>
+        <div class="coverage-badge" id="coverageInfo">Awaiting Data...</div>
     </div>
 
     <div id="dropZone" onclick="document.getElementById('fileInput').click()">
         <input type="file" id="fileInput" class="hidden" accept=".csv, .xlsx">
-        <h1 id="dropTitle">AWAITING TELEPORT</h1>
-        <p style="color:var(--text-dim)">Click the 'Sync Dashboard' bookmark in SharePoint to launch.</p>
+        <h1>AWAITING TELEPORT</h1>
+        <p style="color:var(--text-dim)">Click the Sync bookmark in SharePoint or drop a file.</p>
     </div>
 
     <div id="dashUI" class="hidden">
@@ -115,7 +125,7 @@
             <tbody id="teamBody"></tbody></table>
         </div>
         <div class="card-grid" id="teamCards"></div>
-        <div class="bottom-stats" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+        <div class="bottom-stats">
             <div class="hall-card"><h3>HIGHEST UTILIZATION</h3><div id="topUti" class="uti-lg" style="font-size:1.4rem">-</div></div>
             <div class="hall-card"><h3>VOLUME LEADER</h3><div id="topTkts" class="uti-lg" style="font-size:1.4rem">-</div></div>
             <div class="hall-card"><h3>DAILY WISDOM</h3><div id="quoteDisplay" style="font-style:italic; color:var(--primary)">"Select data to begin."</div></div>
@@ -123,52 +133,25 @@
     </div>
 </div>
 
-<div id="leaveModal" class="modal-overlay" onclick="closeLeaveModal()">
-    <div class="modal" onclick="event.stopPropagation()">
-        <h2 id="leaveTitle">Leave Planner</h2>
-        <div id="leaveDateList" style="display:flex; flex-direction:column; gap:10px; margin-top:20px;"></div>
-        <div style="margin-top:30px; text-align:right;"><button onclick="closeLeaveModal()" style="background:var(--primary); color:black; border:none; padding:10px 30px; border-radius:10px; font-weight:800; cursor:pointer;">DONE</button></div>
-    </div>
-</div>
-
 <div id="modalOverlay" class="modal-overlay" onclick="closeModal()"><div class="modal" onclick="event.stopPropagation()"><div class="modal-header"><h2 id="modalTitle">Member Tickets</h2><button onclick="closeModal()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">&times;</button></div><table id="modalTable"><thead><tr><th>Cluster</th><th>Retailer</th><th>Link</th><th>Mins</th></tr></thead><tbody id="modalBody"></tbody></table></div></div>
 
 <script>
     let rawData = [], masterTeamList = new Set(), currentMembers = {}, currentTarget = 0, curMode = 'week', curCluster = 'all', picker, DAY_MINS = 420;
-    let leaveStore = JSON.parse(localStorage.getItem('teamLeaveTracker')) || {};
     let meName = localStorage.getItem('highlightMeSelected') || '';
 
-    // TELEPORTER RECEIVER
     function checkTeleport() {
-        if (window.name && window.name.startsWith('[{"')) {
-            try {
-                rawData = JSON.parse(window.name);
-                window.name = ""; // Clear memory
-                initDashboard();
-            } catch(e) { console.error("Teleport Parse Error"); }
+        const payload = localStorage.getItem('teleportPayload');
+        if (payload) {
+            rawData = JSON.parse(payload);
+            localStorage.removeItem('teleportPayload'); // Cleanup
+            initDashboard();
         }
     }
 
     function saveMe(v) { meName = v; localStorage.setItem('highlightMeSelected', v); render(); }
     function setClusterFilter(c, b) { document.querySelectorAll('.c-pill').forEach(p => p.classList.remove('active')); b.classList.add('active'); curCluster = c; process(); }
 
-    function initDashboard() {
-        masterTeamList.clear();
-        rawData.forEach(r => ['PA-1','PA-2','QA-1','QA-2'].forEach(role => { if(r[role] && isNaN(r[role])) masterTeamList.add(r[role].trim()); }));
-        const sel = document.getElementById('meSelect'); sel.innerHTML = '<option value="">-- Choose Name --</option>';
-        Array.from(masterTeamList).sort().forEach(n => { const o = document.createElement('option'); o.value = n; o.innerText = n; if(n === meName) o.selected = true; sel.appendChild(o); });
-        analyzeFile();
-        document.getElementById('dashUI').classList.remove('hidden');
-        document.getElementById('dropZone').classList.add('hidden');
-        setMode('week', document.querySelector('.pill.active'));
-    }
-
-    function analyzeFile() {
-        const dates = rawData.map(r => new Date(r['PIO_x0020__x0028_Completed_x0029_'] || r['PIO (Completed)'] || r['PIO (Submitted)'])).filter(d => !isNaN(d));
-        if(dates.length) document.getElementById('coverageInfo').innerText = `RANGE: ${new Date(Math.min(...dates)).toLocaleDateString()} - ${new Date(Math.max(...dates)).toLocaleDateString()}`;
-    }
-
-    picker = flatpickr("#rangeInput", { mode: "range", dateFormat: "Y-m-d", onClose: (sd) => { if(sd.length >= 1) { curMode = 'custom'; document.querySelectorAll('.pill').forEach(b => b.classList.remove('active')); process(); } } });
+    picker = flatpickr("#rangeInput", { mode: "range", dateFormat: "Y-m-d", onClose: () => { curMode = 'custom'; document.querySelectorAll('.pill').forEach(b => b.classList.remove('active')); process(); } });
 
     function setMode(mode, btn) {
         document.querySelectorAll('.pill').forEach(b => b.classList.remove('active')); btn.classList.add('active'); curMode = mode;
@@ -179,41 +162,58 @@
         process();
     }
 
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+        const reader = new FileReader(); reader.onload = (ev) => {
+            const wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
+            rawData = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+            initDashboard();
+        };
+        reader.readAsArrayBuffer(e.target.files[0]);
+    });
+
+    function initDashboard() {
+        masterTeamList.clear();
+        rawData.forEach(r => {
+            ['PA-1','PA-2','QA-1','QA-2'].forEach(role => {
+                if(r[role] && isNaN(r[role])) masterTeamList.add(r[role].trim());
+            });
+        });
+        const sel = document.getElementById('meSelect'); sel.innerHTML = '<option value="">-- Choose Name --</option>';
+        Array.from(masterTeamList).sort().forEach(n => { const o = document.createElement('option'); o.value = n; o.innerText = n; if(n === meName) o.selected = true; sel.appendChild(o); });
+        analyzeFile();
+        document.getElementById('dashUI').classList.remove('hidden'); document.getElementById('dropZone').classList.add('hidden');
+        setMode('week', document.querySelector('.pill.active'));
+    }
+
+    function analyzeFile() {
+        const dates = rawData.map(r => new Date(r['PIO_x0020__x0028_Completed_x0029_'] || r['PIO (Completed)'] || r['PIO (Submitted)'])).filter(d => !isNaN(d));
+        if(dates.length) document.getElementById('coverageInfo').innerText = `RANGE: ${new Date(Math.min(...dates)).toLocaleDateString()} - ${new Date(Math.max(...dates)).toLocaleDateString()}`;
+    }
+
     function process() {
         if (!rawData.length) return;
         let start = picker.selectedDates[0], end = picker.selectedDates[1] || start;
         if (start) start.setHours(0,0,0,0); if (end) end.setHours(23,59,59,999);
-        const workDays = start ? getWorkDays(start, end) : 252;
+        const workDays = start ? Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1) : 252;
+        currentTarget = workDays * DAY_MINS;
         document.getElementById('selectionLabel').innerText = start ? `${start.toLocaleDateString()} - ${end.toLocaleDateString()} (${workDays} Days)` : "All Data";
-        currentMembers = {};
-        masterTeamList.forEach(n => {
-            let adjT = workDays * DAY_MINS; let adj = false;
-            if(start && end) {
-                let curr = new Date(start);
-                while(curr <= end) {
-                    let dStr = curr.toISOString().split('T')[0];
-                    if(leaveStore[n] && leaveStore[n][dStr]) { adjT -= leaveStore[n][dStr]; adj = true; }
-                    curr.setDate(curr.getDate() + 1);
-                }
-            }
-            currentMembers[n] = { pa:0, qa:0, tot:0, tkts:0, clA:0, clB:0, log:[], ghosts:0, adjT: Math.max(0, adjT), isAdj: adj };
-        });
-
+        
+        currentMembers = {}; masterTeamList.forEach(n => currentMembers[n] = { pa:0, qa:0, tot:0, tkts:0, clA:0, clB:0, log:[] });
+        
         rawData.forEach(row => {
             const status = (row["PIO_x0020_Status"] || row["PIO Status"] || "").toLowerCase();
             if (status !== 'completed') return;
-            const compDate = new Date(row["PIO_x0020__x0028_Completed_x0029_"] || row["PIO (Completed)"]);
-            const cluster = row["Cluster"] || "";
-            if (!start || (compDate >= start && compDate <= end)) {
+            const d = new Date(row["PIO_x0020__x0028_Completed_x0029_"] || row["PIO (Completed)"]);
+            if (!start || (d >= start && d <= end)) {
                 [['PA-1','PA-1_x0020__x0028_min_x0029_','PA-1 (min)'],['PA-2','PA-2_x0020__x0028_min_x0029_','PA-2 (min)'],['QA-1','QA-1_x0020__x0028_min_x0029_','QA-1 (min)'],['QA-2','QA-2_x0020__x0028_min_x0029_','QA-2 (min)']].forEach(([nk, mk1, mk2]) => {
                     const n = row[nk], m = parseFloat(row[mk1] || row[mk2]) || 0;
                     if (n && currentMembers[n.trim()]) {
-                        if (curCluster !== 'all' && cluster !== curCluster) return;
+                        const cl = row["Cluster"]; if (curCluster !== 'all' && cl !== curCluster) return;
                         const mem = currentMembers[n.trim()];
                         if (nk.startsWith('PA')) mem.pa += m; else mem.qa += m;
-                        if (cluster === "Cluster_A") mem.clA += m; else mem.clB += m;
-                        mem.tot += m; mem.tkts++; if(m === 0) mem.ghosts++;
-                        mem.log.push({ cluster, retailer: row["Retailer"], link: row["PIO_x0020_Ticket"] || row["PIO Ticket"], mins: m });
+                        if (cl === "Cluster_A") mem.clA += m; else mem.clB += m;
+                        mem.tot += m; mem.tkts++;
+                        mem.log.push({ cluster: cl, retailer: row["Retailer"], link: row["PIO_x0020_Ticket"] || row["PIO Ticket"], mins: m });
                     }
                 });
             }
@@ -224,37 +224,27 @@
     function render() {
         const b = document.getElementById('teamBody'); b.innerHTML = '';
         const g = document.getElementById('teamCards'); g.innerHTML = '';
-        const sorted = Object.keys(currentMembers).filter(m => currentMembers[m].tkts > 0 || currentMembers[m].isAdj).sort((a,b) => currentMembers[b].tot - currentMembers[a].tot);
+        const sorted = Object.keys(currentMembers).filter(m => currentMembers[m].tkts > 0).sort((a,b) => currentMembers[b].tot - currentMembers[a].tot);
         sorted.forEach(m => {
-            const u = currentMembers[m], p = u.adjT > 0 ? Math.round((u.tot / u.adjT) * 100) : (u.tot > 0 ? 100 : 0), isM = m === meName;
+            const u = currentMembers[m], p = currentTarget > 0 ? Math.round((u.tot / currentTarget) * 100) : 0, isM = m === meName;
             let tag = "", glow = "";
             if (u.clA > 0 && u.clB > 0) { tag = '<span class="c-tag mixed">HYBRID</span>'; glow="glow-mixed"; }
             else if (u.clA > 0) { tag = '<span class="c-tag a">CLUSTER A</span>'; glow="glow-a"; }
             else { tag = '<span class="c-tag b">CLUSTER B</span>'; glow="glow-b"; }
-            b.innerHTML += `<tr class="${isM?'me-highlight':''}"><td><strong>${m}</strong> ${tag}</td><td><span class="ticket-link" onclick="openTickets('${m}')">${u.tkts} Items</span></td><td>${u.pa}m</td><td>${u.qa}m</td><td class="target-cell ${u.isAdj?'on-leave':''}" onclick="openLeavePlanner('${m}')">${u.adjT}m ${u.isAdj?'🏖️':''}</td><td>${u.tot}m</td><td style="color:var(--primary); font-weight:800">${p}%</td><td>${Math.max(0, u.adjT-u.tot)}m</td></tr>`;
-            g.innerHTML += `<div class="card ${glow} ${isM?'me-highlight':''}"><div style="font-weight:700">${m}</div><div class="uti-lg">${p}%</div><div class="prog-stack"><div style="width:${(u.pa/u.tot)*100}%; background:var(--pa)"></div><div style="width:${(u.qa/u.tot)*100}%; background:var(--qa)"></div></div><div style="display:flex; justify-content:space-between; font-size:0.6rem; font-weight:700; color:var(--text-dim)"><span>Target: ${u.adjT}m</span><span class="ticket-link" onclick="openTickets('${m}')">View Log</span></div></div>`;
+            b.innerHTML += `<tr class="${isM?'me-highlight':''}"><td><strong>${m}</strong> ${tag}</td><td><span class="ticket-link" onclick="openTickets('${m}')">${u.tkts} Items</span></td><td>${u.pa}m</td><td>${u.qa}m</td><td>${currentTarget}m</td><td>${u.tot}m</td><td style="color:var(--primary); font-weight:800">${p}%</td><td>${Math.max(0, currentTarget-u.tot)}m</td></tr>`;
+            g.innerHTML += `<div class="card ${glow} ${isM?'me-highlight':''}"><div style="font-weight:700">${m}</div><div class="uti-lg">${p}%</div><div class="prog-stack"><div style="width:${(u.pa/u.tot)*100}%; background:var(--pa)"></div><div style="width:${(u.qa/u.tot)*100}%; background:var(--qa)"></div></div><div style="display:flex; justify-content:space-between; font-size:0.6rem; font-weight:700; color:var(--text-dim)"><span>PA: ${u.pa}m | QA: ${u.qa}m</span><span class="ticket-link" onclick="openTickets('${m}')">View Log</span></div></div>`;
         });
         if(sorted.length) {
-            document.getElementById('topUti').innerText = sorted[0] + " (" + Math.round((currentMembers[sorted[0]].tot/currentMembers[sorted[0]].adjT)*100) + "%)";
-            const topV = [...sorted].sort((a,b) => currentMembers[b].tkts - currentMembers[a].tkts)[0];
-            document.getElementById('topTkts').innerText = topV + " (" + currentMembers[topV].tkts + " TKTS)";
+            document.getElementById('topUti').innerText = sorted[0] + " (" + Math.round((currentMembers[sorted[0]].tot/currentTarget)*100) + "%)";
+            document.getElementById('topTkts').innerText = [...sorted].sort((a,b) => currentMembers[b].tkts - currentMembers[a].tkts)[0] + " (" + currentMembers[[...sorted].sort((a,b) => currentMembers[b].tkts - currentMembers[a].tkts)[0]].tkts + " TKTS)";
         }
     }
 
-    function openLeavePlanner(n) {
-        document.getElementById('leaveTitle').innerText = `${n}'s Leave Planner`; const list = document.getElementById('leaveDateList'); list.innerHTML = '';
-        const start = picker.selectedDates[0], end = picker.selectedDates[1] || start;
-        let curr = new Date(start);
-        while(curr <= end) {
-            let dStr = curr.toISOString().split('T')[0]; let val = (leaveStore[n] && leaveStore[n][dStr]) || 0;
-            list.innerHTML += `<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:10px; border-radius:10px;"><span>${curr.toLocaleDateString()}</span><div style="display:flex; gap:5px;"><button style="padding:5px 10px; border-radius:5px; border:none; cursor:pointer; background:${val===420?'var(--leave)':'#1e293b'}; color:white;" onclick="setLeave('${n}','${dStr}',420)">FULL OFF</button><button style="padding:5px 10px; border-radius:5px; border:none; cursor:pointer; background:${val===210?'var(--leave)':'#1e293b'}; color:white;" onclick="setLeave('${n}','${dStr}',210)">HALF OFF</button><button style="padding:5px 10px; border-radius:5px; border:none; cursor:pointer; background:#1e293b; color:white;" onclick="setLeave('${n}','${dStr}',0)">RESET</button></div></div>`;
-            curr.setDate(curr.getDate() + 1);
-        }
-        document.getElementById('leaveModal').style.display = 'flex';
+    function openTickets(n) {
+        document.getElementById('modalTitle').innerText = `${n}'s Log`; const b = document.getElementById('modalBody'); b.innerHTML = '';
+        currentMembers[n].log.forEach(t => b.innerHTML += `<tr><td>${t.cluster}</td><td>${t.retailer}</td><td><a href="${t.link}" target="_blank" class="ticket-link">Link</a></td><td>${t.mins}m</td></tr>`);
+        document.getElementById('modalOverlay').style.display = 'flex';
     }
-    function setLeave(n, d, m) { if(!leaveStore[n]) leaveStore[n] = {}; if(m===0) delete leaveStore[n][d]; else leaveStore[n][d] = m; localStorage.setItem('teamLeaveTracker', JSON.stringify(leaveStore)); openLeavePlanner(n); process(); }
-    function closeLeaveModal() { document.getElementById('leaveModal').style.display = 'none'; }
-    function openTickets(n) { document.getElementById('modalTitle').innerText = `${n}'s Log`; const b = document.getElementById('modalBody'); b.innerHTML = ''; currentMembers[n].log.forEach(t => b.innerHTML += `<tr><td>${t.cluster}</td><td>${t.retailer}</td><td><a href="${t.link}" target="_blank" class="ticket-link">Link</a></td><td>${t.mins}m</td></tr>`); document.getElementById('modalOverlay').style.display = 'flex'; }
     function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
     function getWorkDays(s, e) { let count = 0, cur = new Date(s); while(cur <= e) { if(cur.getDay() !== 0 && cur.getDay() !== 6) count++; cur.setDate(cur.getDate()+1); } return count || 1; }
 </script>
